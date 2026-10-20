@@ -267,13 +267,73 @@ shortcuts (including Email), and prints what it did. It installs:
 
 ### Popup size and placement (Omarchy)
 
-For a small floating popup, add this to `~/.config/hypr/hyprland.lua` after its imports:
+By default Hyprland would tile the popup like a normal window. A small **window rule** makes it a
+centred, floating 520 × 640 popup instead.
 
-```lua
-o.window("^(dev\\.kumquat\\.app)$", { float = true, center = true, size = { 520, 640 } })
+> ⚠️ **This is a line of Hyprland configuration (Lua), not a terminal command.** Pasting it into a
+> terminal prints errors like `syntax error near ...` — that is expected. It belongs *inside a
+> file*, as described below.
+
+**You normally need to do nothing.** The installer (`scripts/install-shortcuts.py`) adds the rule
+for you, in a clearly marked block at the end of `~/.config/hypr/hyprland.lua`, after making a
+backup. Running it again never adds a second copy, and a rule you wrote yourself is left alone.
+Check that it is there:
+
+```bash
+grep -n -A3 "Kumquat window rule" ~/.config/hypr/hyprland.lua
 ```
 
-Run `hyprctl reload` then `hyprctl configerrors`. This rule is Omarchy/Hyprland-specific.
+You should see a `-- BEGIN Kumquat window rule (managed)` block containing one `o.window(...)` line.
+Then apply it and confirm there are no errors:
+
+```bash
+hyprctl reload
+hyprctl configerrors      # must print nothing
+```
+
+Press `Super+E`: the popup should now appear small, floating and centred.
+
+**Adding it by hand** (only if you skipped the installer or want to do it yourself). Pick one:
+
+1. *With an editor.* Omarchy's default editor is **nvim**:
+
+   ```bash
+   nvim ~/.config/hypr/hyprland.lua
+   ```
+
+   (`omarchy-launch-editor ~/.config/hypr/hyprland.lua` opens it in whichever editor Omarchy is set
+   to use, and `nano ~/.config/hypr/hyprland.lua` works if you have nano installed.)
+
+   In **nvim**: press `G` to jump to the end, press `i` to start typing, paste the line below on a
+   new line, press `Esc`, then type `:wq` and `Enter` to save and quit (`:q!` quits without saving).
+   Finally run `hyprctl reload`.
+
+   ```lua
+   o.window("^(dev\\.kumquat\\.app)$", { float = true, center = true, size = { 520, 640 } })
+   ```
+
+2. *From a terminal in one step* — this **appends** to the file (it never overwrites it), and is
+   safe to paste exactly as shown, including the two backslashes:
+
+   ```bash
+   cat >> ~/.config/hypr/hyprland.lua <<'EOF'
+
+   -- Kumquat: small centred floating popup
+   o.window("^(dev\\.kumquat\\.app)$", { float = true, center = true, size = { 520, 640 } })
+   EOF
+   hyprctl reload && hyprctl configerrors
+   ```
+
+   Run it only once, or the line is added twice (harmless, but untidy).
+
+**Change the size:** edit the two numbers in `size = { 520, 640 }` (width, height in pixels) and
+run `hyprctl reload`. **Remove it:** delete the block (or that one line) and reload.
+
+**If it doesn't work:** make sure the file is `~/.config/hypr/hyprland.lua` (Omarchy 4+; older
+Omarchy used `hyprland.conf` with a different syntax, which this rule does not fit);
+`hyprctl configerrors` shows the exact line Hyprland dislikes; and the class must be spelled
+`dev.kumquat.app` with the doubled backslashes (`\\.`) inside the Lua string. This rule is
+Hyprland/Omarchy-specific and optional — Kumquat works without it, only larger and tiled.
 
 ### Optional: system package
 
@@ -340,6 +400,7 @@ It cannot be combined with `--files` or `--from-clipboard`.
 
 | Symptom | Fix |
 |---|---|
+| Pasting the `o.window(...)` line into a terminal gives errors | It is a config line, not a command. The installer adds it for you; to do it by hand see [Popup size and placement](#popup-size-and-placement-omarchy) |
 | `Super+E` does nothing | `hyprctl configerrors` must be empty; run `hyprctl binds \| grep -i kumquat`; rerun the installer |
 | `Shift+E` does nothing in Files | Restart Files once. It works only when a **file** is selected, not a text field |
 | Wrong file is opened | Selection comes from Files itself; Kumquat never guesses from the clipboard. Re-select the file |

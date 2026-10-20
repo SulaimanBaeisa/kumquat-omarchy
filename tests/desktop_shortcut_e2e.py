@@ -116,10 +116,18 @@ def text(client):
 
 
 def clipboard():
-    types = subprocess.run(["wl-paste", "--list-types"], capture_output=True)
+    types = subprocess.run(["wl-paste", "--list-types"], capture_output=True, timeout=10)
     result = {"types": types.stdout.decode(errors="replace"), "code": types.returncode}
     for mime in types.stdout.decode().splitlines():
-        payload = subprocess.run(["wl-paste", "--type", mime], capture_output=True)
+        # Legacy X11 targets (COMPOUND_TEXT) can be advertised by an owner that
+        # never answers; a bounded read keeps the harness from hanging forever.
+        try:
+            payload = subprocess.run(
+                ["wl-paste", "--type", mime], capture_output=True, timeout=4
+            )
+        except subprocess.TimeoutExpired:
+            result[mime] = ["unresponsive"]
+            continue
         result[mime] = [payload.returncode, hashlib.sha256(payload.stdout).hexdigest()]
     return result
 
