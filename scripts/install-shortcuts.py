@@ -37,6 +37,12 @@ KNOWN_SUPER_E = (
 # Hyprland's Lua rule needs the dot escaped twice (Lua string, then regex).
 FORMER_WINDOW_CLASS = "dev\\\\.tangerine\\\\.wheel"
 WINDOW_CLASS = "dev\\\\.kumquat\\\\.app"
+RULE_BEGIN = "-- BEGIN Kumquat window rule (managed)"
+RULE_END = "-- END Kumquat window rule (managed)"
+WINDOW_RULE = (
+    f'o.window("^({WINDOW_CLASS})$", '
+    "{ float = true, center = true, size = { 520, 640 } })"
+)
 
 
 def render_bindings(original: str, launcher: Path) -> str:
@@ -114,6 +120,25 @@ def migrate_window_rule(original: str) -> str | None:
     return original.replace(FORMER_WINDOW_CLASS, WINDOW_CLASS)
 
 
+def add_window_rule(original: str) -> str | None:
+    """Append the popup size/placement rule once; None when one already exists.
+
+    Any line that already mentions the window class counts, so a rule the user
+    wrote by hand (maybe with a different size) is never duplicated or changed.
+    """
+    if WINDOW_CLASS in original:
+        return None
+    lead = "" if not original or original.endswith("\n") else "\n"
+    gap = "\n" if original else ""
+    block = (
+        f"{RULE_BEGIN}\n"
+        "-- Small centred floating popup for Kumquat. Delete this block to undo.\n"
+        f"{WINDOW_RULE}\n"
+        f"{RULE_END}\n"
+    )
+    return original + lead + gap + block
+
+
 def retire_former_files(home: Path) -> None:
     """Move the old build's launcher/script/extension aside (never just delete)."""
     stamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
@@ -171,6 +196,10 @@ def install(repo: Path, home: Path) -> None:
     rules = home / ".config/hypr/hyprland.lua"
     rules_text = _read(rules)
     new_rules = migrate_window_rule(rules_text)
+    rule_added = False
+    if new_rules is None and rules.exists():  # never invent a config on non-Omarchy
+        new_rules = add_window_rule(rules_text)
+        rule_added = new_rules is not None
     retire_former_files(home)
     _write(launcher, launch_text, executable=True)
     _write(script, script_text, executable=True)
@@ -180,11 +209,12 @@ def install(repo: Path, home: Path) -> None:
     migrate_appearance(home)
     if new_rules is not None:
         _write(rules, new_rules)
-    elif WINDOW_CLASS not in rules_text:
+        if rule_added:
+            print(f"Added a floating-window rule for the popup to {rules}")
+    elif not rules.exists():
         print(
-            "Optional: for a small floating window add to hyprland.lua:\n"
-            f'  o.window("^({WINDOW_CLASS})$", '
-            "{ float = true, center = true, size = { 520, 640 } })"
+            f"No {rules} found (not an Omarchy/Hyprland setup?), so the optional "
+            "popup-size rule was skipped. The shortcuts still work."
         )
     print(
         "Next: hyprctl reload; restart Files once to load the nautilus-python extension."

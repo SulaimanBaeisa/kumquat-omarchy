@@ -176,14 +176,53 @@ def test_window_rule_for_the_old_class_is_updated(tmp_path):
     assert list(rules.parent.glob("hyprland.lua.bak.*"))
 
 
-def test_missing_window_rule_is_explained_not_invented(tmp_path, capsys):
+RULE_LINE = (
+    'o.window("^(dev\\\\.kumquat\\\\.app)$", '
+    "{ float = true, center = true, size = { 520, 640 } })"
+)
+OTHER_RULE = 'o.window("^(other)$", { float = true })\n'
+
+
+def test_missing_window_rule_is_added_in_a_marked_block(tmp_path, capsys):
+    """Users should not have to paste Lua into a file by hand."""
     hypr = tmp_path / ".config/hypr"
     hypr.mkdir(parents=True)
-    (hypr / "hyprland.lua").write_text('o.window("^(other)$", { float = true })\n')
+    (hypr / "hyprland.lua").write_text(OTHER_RULE)
     installer()["install"](SCRIPT.parents[1], tmp_path)
-    untouched = 'o.window("^(other)$", { float = true })\n'
-    assert (hypr / "hyprland.lua").read_text() == untouched
-    assert "dev\\\\.kumquat\\\\.app" in capsys.readouterr().out
+    text = (hypr / "hyprland.lua").read_text()
+    assert text.startswith(OTHER_RULE), "existing configuration must stay first"
+    assert "-- BEGIN Kumquat window rule (managed)" in text
+    assert "-- END Kumquat window rule (managed)" in text
+    assert text.count(RULE_LINE) == 1
+    assert list(hypr.glob("hyprland.lua.bak.*")), "a backup copy must be kept"
+    assert "floating-window rule" in capsys.readouterr().out
+
+
+def test_window_rule_is_not_added_twice(tmp_path):
+    hypr = tmp_path / ".config/hypr"
+    hypr.mkdir(parents=True)
+    (hypr / "hyprland.lua").write_text(OTHER_RULE)
+    api = installer()
+    api["install"](SCRIPT.parents[1], tmp_path)
+    once = (hypr / "hyprland.lua").read_text()
+    api["install"](SCRIPT.parents[1], tmp_path)
+    assert (hypr / "hyprland.lua").read_text() == once
+
+
+def test_a_handwritten_window_rule_is_left_alone(tmp_path):
+    hypr = tmp_path / ".config/hypr"
+    hypr.mkdir(parents=True)
+    mine = OTHER_RULE + "-- my popup\n" + RULE_LINE.replace("520, 640", "700, 500") + "\n"
+    (hypr / "hyprland.lua").write_text(mine)
+    installer()["install"](SCRIPT.parents[1], tmp_path)
+    assert (hypr / "hyprland.lua").read_text() == mine
+
+
+def test_no_hyprland_config_is_never_created(tmp_path, capsys):
+    """On a system without Omarchy's hyprland.lua, do not invent one."""
+    installer()["install"](SCRIPT.parents[1], tmp_path)
+    assert not (tmp_path / ".config/hypr/hyprland.lua").exists()
+    assert "hyprland.lua" in capsys.readouterr().out
 
 
 def _tree(home):
