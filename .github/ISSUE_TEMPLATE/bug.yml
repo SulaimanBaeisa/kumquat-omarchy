@@ -25,6 +25,17 @@ body:
     attributes:
       label: System
       description: Omarchy / Arch version, GTK version, file manager
+  - type: input
+    id: plugin
+    attributes:
+      label: Plugin version
+      description: The version shown by `omarchy plugin list`
+  - type: textarea
+    id: shell-log
+    attributes:
+      label: Shell log (only if the bar button or `summon` does nothing)
+      description: Output of `qs log -p "$OMARCHY_PATH/shell" --tail 100`, with your username removed
+      render: shell
   - type: textarea
     id: output
     attributes:

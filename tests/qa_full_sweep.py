@@ -796,7 +796,11 @@ def checkpoint(path: Path, cells: list[dict], *, phase: str, **extra) -> None:
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     pending = path.with_name(path.name + ".pending")
-    pending.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+    # Compact on purpose: the indented form is over the marketplace scan's
+    # 512 KiB per-file limit (tests/test_plugin_contract.py enforces it).
+    pending.write_text(
+        json.dumps(report, ensure_ascii=False, separators=(",", ":")) + "\n"
+    )
     pending.replace(path)
 
 

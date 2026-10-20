@@ -1,4 +1,4 @@
-# Contributing to Kumquat
+# Contributing to Kumquat (Omarchy plugin)
 
 Thanks for helping. This is a small project; the goal is a converter that does what it says
 and says honestly when it cannot.
@@ -6,11 +6,13 @@ and says honestly when it cannot.
 ## Set up
 
 ```bash
-git clone https://github.com/SulaimanBaeisa/kumquat-omarchy.git && cd kumquat-omarchy
+git clone https://github.com/SulaimanBaeisa/omarchy-plugin-kumquat.git && cd omarchy-plugin-kumquat
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install -r requirements.txt ruff PySide6-Essentials
 .venv/bin/python -m pytest -q
 .venv/bin/python -m ruff check src tests scripts
+node --test tests/js/*.test.mjs
+python3 scripts/validate-plugin.py
 ```
 
 GUI checks need a Wayland session and the system Python that has PyGObject (`/usr/bin/python3`);
@@ -38,6 +40,13 @@ maintainer's approval (see `.github/CODEOWNERS`). For anything bigger than a sma
 - **No personal data in the repo.** Screenshots must come from `tests/make_screenshots.py`
   (synthetic files, widget snapshots), not a screen capture. Check images and logs for home
   paths, usernames and emails before committing.
+- **Keep the plugin small and honest.** The QML the shell loads runs unsandboxed inside the user's
+  shell. It may only start Kumquat's own launcher; it must not read files, open network
+  connections, run installers or use `sudo`. Installing the plugin must change nothing outside its
+  folder, and only the opt-in `scripts/install-shortcuts.py` (with a matching `--uninstall`) may edit
+  user configuration, backing up first.
+- **Mind the marketplace limits.** At most 1,000 files, 8 MiB in total and 512 KiB per file, no
+  symlinks, no downloaded text piped into a shell. `scripts/validate-plugin.py` checks all of it.
 - **Keep the shortcut contract.** `Super+E` browses; `Shift+E` works only inside Files;
   `Super+Shift+E` stays Omarchy's Email. No global `Shift+E`.
 - Themes: colours come from Omarchy's `colors.toml`; anything read from a theme file is

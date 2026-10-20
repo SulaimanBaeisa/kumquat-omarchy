@@ -89,25 +89,23 @@ integration by running GTK. Nautilus selection actions require the Nautilus
 extension and its Python bindings. Installing GTK does not install or enable a
 file-manager selection shortcut.
 
-## Arch packaging caveats
+## Dependency notes for packagers
 
-The repository's local `packaging/PKGBUILD` is not a portable installer. In the
-assessed recipe:
+This repository ships an Omarchy plugin, not a distribution package. If you package Kumquat for
+another system, an earlier packaging review found these points easy to miss:
 
-- `gtk4` is listed without the source's 4.12 minimum.
-- `python-gobject` is missing from `depends`, although importing `gi` requires
-  it on Arch. Upstream's Arch instructions name both `python-gobject` and
-  `gtk4`; GTK's package metadata does not make the Python bindings a runtime
-  requirement.[3][4][7] A workstation where the bindings were already installed
-  can mask this packaging gap.
-- `gtk4-layer-shell` is listed as mandatory, even though the GUI has an import
-  fallback to an ordinary window. That fallback's actual display behaviour
-  still needs testing.
-- Clipboard integration also needs `wl-clipboard`, which is not declared there.
+- `gtk4` needs at least 4.12, the source's minimum.
+- `python-gobject` must be a dependency, because importing `gi` requires it on Arch. Upstream's Arch
+  instructions name both `python-gobject` and `gtk4`; GTK's package metadata does not make the Python
+  bindings a runtime requirement.[3][4][7] A workstation where the bindings were already installed
+  can mask this gap.
+- `gtk4-layer-shell` is optional: the GUI has an import fallback to an ordinary window. That
+  fallback's actual display behaviour still needs testing.
+- Clipboard integration needs `wl-clipboard`.
 
-These are packaging/integration findings, not changes made by the appearance
-feature. System GTK packages must be visible to the launching interpreter;
-`pip install` of this project's metadata alone does not install GTK or `gi`.
+System GTK packages must be visible to the launching interpreter; `pip install` of this project's
+metadata alone does not install GTK or `gi`. These are packaging/integration findings, not changes
+made by the appearance feature.
 
 ## Reproducing the appearance checks
 

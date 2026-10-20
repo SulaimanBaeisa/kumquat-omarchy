@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Install the two Kumquat shortcuts for this user, without root.
+"""Install (or remove) the optional Kumquat shortcuts for this user, without root.
 
-Nautilus owns Shift+E in its file view and supplies its current selection.
-Hyprland owns Super+E (browse); Super+Shift+E remains the Email shortcut.
-No clipboard bridge or synthetic Ctrl+C is used.
+Installing the Omarchy plugin changes nothing outside the plugin folder. This
+script is the opt-in step that adds the desktop shortcuts:
 
-The per-user launcher loads this checkout's source with the system Python
-(which supplies GTK). Keep the checkout in place, or reinstall after moving it.
+* Hyprland owns Super+E (browse); Super+Shift+E remains the Email shortcut.
+* Nautilus owns Shift+E in its file view and supplies its current selection.
+* A small ``~/.local/bin/kumquat`` wrapper runs the plugin checkout's
+  ``bin/kumquat``; the Files integration and the CLI use it.
+* A window rule makes the popup a small floating window.
+
+No clipboard bridge or synthetic Ctrl+C is used. Every file it changes is backed up
+first, and ``--uninstall`` removes exactly what it added. Keep the plugin folder in
+place, or run the installer again after moving it.
 """
 
 from __future__ import annotations
@@ -22,6 +28,13 @@ BEGIN = "-- BEGIN Kumquat shortcuts (managed)"
 END = "-- END Kumquat shortcuts (managed)"
 SCRIPT_NAME = "Kumquat Actions"
 ACCEL = "<Shift>e"
+PLUGIN_ID = "io.github.sulaimanbaeisa.kumquat"
+PLUGIN_URL = "https://github.com/SulaimanBaeisa/omarchy-plugin-kumquat"
+# First lines of the files we write, so --uninstall only removes our own.
+LAUNCHER_MARK = "# Kumquat launcher (managed by scripts/install-shortcuts.py)"
+OLD_LAUNCHER_MARK = "# User install: system Python for GTK, source from this checkout."
+SCRIPT_MARK = "# Nautilus supplies the current selection, never the clipboard."
+EXTENSION_MARK = "KumquatWheelExtension"
 
 # The product was called "Tangerine" before it was renamed. A user who installed
 # that build has these on disk; they are migrated, never left to fight the new ones.
@@ -97,7 +110,9 @@ def _read(path: Path) -> str:
     return path.read_text() if path.exists() else ""
 
 
-def _write(path: Path, content: str, executable: bool = False) -> None:
+def _write(
+    path: Path, content: str, executable: bool = False, verb: str = "Installed"
+) -> None:
     """Back up before changing an existing file, and verify the exact target."""
     if path.exists() and path.read_text() != content:
         stamp = datetime.now().strftime("%Y-%m-%d_%H%M%S_%f")
@@ -110,7 +125,7 @@ def _write(path: Path, content: str, executable: bool = False) -> None:
         path.chmod(0o755)
     if path.read_text() != content:
         raise OSError(f"Could not verify write: {path}")
-    print(f"Installed: {path}")
+    print(f"{verb}: {path}")
 
 
 def migrate_window_rule(original: str) -> str | None:
@@ -167,7 +182,8 @@ def migrate_appearance(home: Path) -> None:
 def install(repo: Path, home: Path) -> None:
     """Install only after preflighting conflicts; never replace Email."""
     repo, home = repo.resolve(), home.resolve()
-    if not (repo / "src/kumquat/cli.py").is_file():
+    required = (repo / "src/kumquat/cli.py", repo / "bin/kumquat")
+    if not all(path.is_file() for path in required):
         raise ValueError("Run this installer from a complete Kumquat checkout")
     launcher = home / ".local/bin/kumquat"
     bindings = home / ".config/hypr/bindings.lua"
@@ -178,18 +194,22 @@ def install(repo: Path, home: Path) -> None:
     new_accels = merge_accels(_read(accels))
     extension = home / ".local/share/nautilus-python/extensions/nautilus-kumquat.py"
     extension_text = (repo / "extensions/nautilus-kumquat.py").read_text()
-    code = (
-        f"import sys; sys.path.insert(0, {str(repo / 'src')!r}); "
-        "from kumquat.cli import main; raise SystemExit(main())"
-    )
+    # The real launcher is the plugin's bin/kumquat; this wrapper only gives it a
+    # stable name on PATH. Run through sh so a lost executable bit does not matter.
     launch_text = (
         "#!/bin/sh\n"
-        "# User install: system Python for GTK, source from this checkout.\n"
-        f'exec /usr/bin/python3 -c {shlex.quote(code)} "$@"\n'
+        f"{LAUNCHER_MARK}\n"
+        f"target={shlex.quote(str(repo / 'bin/kumquat'))}\n"
+        '[ -f "$target" ] || {\n'
+        '    echo "kumquat: $target was not found (plugin removed or moved?)." >&2\n'
+        f'    echo "Install it again: omarchy plugin add {PLUGIN_URL} --enable" >&2\n'
+        "    exit 127\n"
+        "}\n"
+        'exec /bin/sh "$target" "$@"\n'
     )
     script_text = (
         "#!/bin/sh\n"
-        "# Nautilus supplies the current selection, never the clipboard.\n"
+        f"{SCRIPT_MARK}\n"
         f"exec {shlex.quote(str(launcher))} "
         "--gui --from-nautilus --tab actions\n"
     )
@@ -221,9 +241,70 @@ def install(repo: Path, home: Path) -> None:
     )
 
 
+def _without_block(text: str, begin: str, end: str) -> str:
+    """`text` minus one managed block and the blank line install put before it."""
+    pattern = re.escape(begin) + r".*?" + re.escape(end) + r"\n?"
+    stripped = re.sub(pattern, "", text, flags=re.S)
+    if stripped == text:
+        return text
+    stripped = stripped.rstrip("\n")
+    return stripped + "\n" if stripped else ""
+
+
+def _remove_ours(path: Path, marks: tuple[str, ...], what: str) -> None:
+    """Delete `path` only when it carries one of our markers."""
+    if not path.exists():
+        return
+    if any(mark in _read(path) for mark in marks):
+        path.unlink()
+        print(f"Removed {what}: {path}")
+    else:
+        print(f"Left alone (not written by this installer): {path}")
+
+
+def uninstall(home: Path) -> None:
+    """Undo install(): remove only what it added, keep user data and backups.
+
+    Never touches ``~/.config/kumquat`` (your appearance choice), converted
+    files, the ``*.bak.*`` backups, or any binding, rule or script of yours.
+    """
+    home = home.resolve()
+    hypr = home / ".config/hypr"
+    for path, begin, end, what in (
+        (hypr / "bindings.lua", BEGIN, END, "the Super+E binding"),
+        (hypr / "hyprland.lua", RULE_BEGIN, RULE_END, "the popup window rule"),
+    ):
+        text = _read(path)
+        cleaned = _without_block(text, begin, end)
+        if cleaned != text:
+            _write(path, cleaned, verb="Updated")
+            print(f"Removed {what} from {path}")
+    marks = (LAUNCHER_MARK, OLD_LAUNCHER_MARK)
+    _remove_ours(home / ".local/bin/kumquat", marks, "launcher")
+    scripts = home / ".local/share/nautilus/scripts"
+    _remove_ours(scripts / SCRIPT_NAME, (SCRIPT_MARK,), "Files script")
+    _remove_ours(
+        home / ".local/share/nautilus-python/extensions/nautilus-kumquat.py",
+        (EXTENSION_MARK,),
+        "Files extension",
+    )
+    print(
+        "Next: hyprctl reload; restart Files once.\n"
+        f"Then remove the plugin itself with: omarchy plugin remove {PLUGIN_ID}"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.parse_args()
+    parser.add_argument(
+        "--uninstall",
+        action="store_true",
+        help="remove the shortcuts, launcher and window rule this script added",
+    )
+    args = parser.parse_args()
+    if args.uninstall:
+        uninstall(Path.home())
+        return
     try:
         install(Path(__file__).resolve().parents[1], Path.home())
     except ValueError as exc:
