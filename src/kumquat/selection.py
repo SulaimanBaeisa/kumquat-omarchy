@@ -11,7 +11,9 @@ import subprocess
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
-from . import registry_data as _registry_data  # noqa: F401 -- populates REGISTRY (275 rows)
+from . import (
+    registry_data as _registry_data,  # noqa: F401 -- populates REGISTRY (275 rows)
+)
 from .registry import ACTIONS, options_for
 
 __all__ = [

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.sulaimanbaeisa.kumquat",
+  "name": "Kumquat",
+  "version": "0.1.0",
+  "author": "Sulaiman Baeisa",
+  "license": "MIT",
+  "description": "Offline file converter and toolbox: 275 conversions, 26 tools and 6 actions for images, audio, video, PDF, documents and archives.",
+  "kinds": [
+    "overlay",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "overlay": "Overlay.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Kumquat",
+    "description": "Opens the Kumquat file converter",
+    "category": "Tools",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}

@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  plugin:
+    name: Plugin contract, QML and JavaScript
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Qt runtime libraries (for the QML tests)
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libfontconfig1
+      - name: Install Python tools
+        run: python -m pip install -r requirements.txt PySide6-Essentials ruff==0.16.9
+      - name: Plugin contract (manifest, entry points, scan limits, baseline)
+        run: python scripts/validate-plugin.py
+      - name: Lint
+        run: python -m ruff check src tests scripts
+      - name: Launch logic (Node)
+        run: node --test tests/js/*.test.mjs
+      - name: QML lint and QML engine tests, installer, contract
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m pytest -q tests/test_plugin_contract.py tests/test_plugin_qml.py tests/test_shortcut_installer.py
+
+  app:
+    name: Full test suite
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Conversion backends
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg imagemagick poppler-utils pandoc
+      - name: Install Python requirements
+        run: python -m pip install -r requirements.txt
+      - name: Tests (backends that are not installed are skipped)
+        env:
+          # The QML tests have their own job; PySide6 is not installed here.
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m pytest -q

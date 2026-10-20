@@ -7,7 +7,7 @@ apply, and real background conversions with a live progress bar.
 
 Run on a live Wayland session with the system Python (it has ``gi``):
 
-    cd ~/kumquat-omarchy
+    cd omarchy-plugin-kumquat      # your checkout
     WAYLAND_DISPLAY=wayland-1 PYTHONPATH=src /usr/bin/python3 tests/gui_e2e.py
 
 Drives the real ``WheelWindow`` in-process through its public contract API

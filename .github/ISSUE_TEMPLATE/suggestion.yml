@@ -23,4 +23,4 @@ body:
     id: area
     attributes:
       label: Area
-      options: [Conversions, Tools, Actions, Popup / UI, Omarchy themes, Files integration, Installer, Docs, Other]
+      options: [Conversions, Tools, Actions, Popup / UI, Omarchy themes, Bar button / summon, Files integration, Installer, Docs, Other]

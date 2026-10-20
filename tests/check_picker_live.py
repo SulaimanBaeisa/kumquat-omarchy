@@ -2,7 +2,7 @@
 
 Run by hand on a Hyprland/Wayland session:
 
-    cd ~/kumquat-omarchy
+    cd omarchy-plugin-kumquat      # your checkout
     PYTHONPATH=src /usr/bin/python3 tests/check_picker_live.py; echo rc=$?
 
 The check puts plain text on the clipboard first (otherwise `--gui` adopts a

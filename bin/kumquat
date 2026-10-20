@@ -1,0 +1,28 @@
+#!/bin/sh
+# Starts Kumquat from this plugin checkout. Arguments are passed to `kumquat`
+# unchanged (see `bin/kumquat --help`).
+#
+# Kumquat needs GTK 4 through PyGObject, which the system Python provides. A
+# virtualenv does not. Set KUMQUAT_PYTHON to use another interpreter, for
+# example one with the development requirements installed.
+set -eu
+
+self=$(readlink -f -- "$0" 2>/dev/null || printf '%s' "$0")
+here=$(CDPATH='' cd -- "$(dirname -- "$self")/.." && pwd -P)
+
+python=${KUMQUAT_PYTHON:-/usr/bin/python3}
+if [ ! -x "$python" ]; then
+    python=$(command -v python3 2>/dev/null) || {
+        echo "kumquat: python3 was not found; install it with: sudo pacman -S python" >&2
+        exit 127
+    }
+fi
+
+# The source directory travels as an argument, never inside the program text, so
+# no path can be misread as code.
+exec "$python" -c '
+import sys
+sys.path.insert(0, sys.argv.pop(1))
+from kumquat.cli import main
+raise SystemExit(main(sys.argv[1:]))
+' "$here/src" "$@"

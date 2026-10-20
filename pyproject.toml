@@ -5,11 +5,18 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kumquat"
 version = "0.1.0"
-description = "Zero-click offline file converter for Omarchy/Arch"
+description = "Offline file converter and toolbox for Omarchy (an Omarchy shell plugin)"
+license = { text = "MIT" }
+authors = [{ name = "Sulaiman Baeisa" }]
+readme = "README.md"
 requires-python = ">=3.11"
 
 [project.scripts]
 kumquat = "kumquat.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/SulaimanBaeisa/omarchy-plugin-kumquat"
+Issues = "https://github.com/SulaimanBaeisa/omarchy-plugin-kumquat/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -243,3 +243,210 @@ def test_migration_is_idempotent(tmp_path):
     snapshot = _tree(tmp_path)
     api["install"](SCRIPT.parents[1], tmp_path)
     assert _tree(tmp_path) == snapshot
+
+
+# --- plugin launcher wrapper and --uninstall --------------------------------
+
+import os  # noqa: E402
+import shutil  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+
+REPO = SCRIPT.parents[1]
+PLUGIN_ID = "io.github.sulaimanbaeisa.kumquat"
+
+
+def _checkout(tmp_path):
+    """A private copy of the plugin, so a test may delete or chmod its files."""
+    dest = tmp_path / "plugin"
+    shutil.copytree(
+        REPO,
+        dest,
+        ignore=shutil.ignore_patterns(".git", ".venv", "__pycache__", ".pytest_cache"),
+    )
+    return dest
+
+
+def _run_launcher(launcher, *args):
+    env = {**os.environ, "KUMQUAT_PYTHON": sys.executable}
+    return subprocess.run(
+        [str(launcher), *args], capture_output=True, text=True, env=env, timeout=60
+    )
+
+
+def test_installed_launcher_runs_the_plugin_checkout(tmp_path):
+    home = tmp_path / "home"
+    checkout = _checkout(tmp_path)
+    installer()["install"](checkout, home)
+    launcher = home / ".local/bin/kumquat"
+    assert launcher.stat().st_mode & 0o111
+    photo = tmp_path / "photo.jpg"
+    photo.write_bytes(b"fake")
+    done = _run_launcher(launcher, "--files", str(photo), "--list")
+    assert done.returncode == 0, done.stderr
+    assert "Convert to PNG" in done.stdout
+
+
+def test_installed_launcher_does_not_need_the_executable_bit(tmp_path):
+    home = tmp_path / "home"
+    checkout = _checkout(tmp_path)
+    installer()["install"](checkout, home)
+    (checkout / "bin/kumquat").chmod(0o644)
+    photo = tmp_path / "photo.jpg"
+    photo.write_bytes(b"fake")
+    done = _run_launcher(home / ".local/bin/kumquat", "--files", str(photo), "--list")
+    assert done.returncode == 0, done.stderr
+    assert "Convert to PNG" in done.stdout
+
+
+def test_installed_launcher_explains_a_removed_plugin(tmp_path):
+    home = tmp_path / "home"
+    checkout = _checkout(tmp_path)
+    installer()["install"](checkout, home)
+    shutil.rmtree(checkout)
+    done = _run_launcher(home / ".local/bin/kumquat", "--gui")
+    assert done.returncode == 127
+    assert "was not found" in done.stderr
+    assert "omarchy plugin add" in done.stderr
+
+
+def test_a_checkout_without_the_launcher_is_refused(tmp_path):
+    checkout = _checkout(tmp_path)
+    (checkout / "bin/kumquat").unlink()
+    with pytest.raises(ValueError, match="complete Kumquat checkout"):
+        installer()["install"](checkout, tmp_path / "home")
+    assert not (tmp_path / "home/.config/hypr/bindings.lua").exists()
+
+
+def _seed_home(home):
+    hypr = home / ".config/hypr"
+    hypr.mkdir(parents=True)
+    (hypr / "bindings.lua").write_text('o.bind("SUPER + H", "My terminal", "foot")\n')
+    (hypr / "hyprland.lua").write_text('o.window("^(other)$", { float = true })\n')
+    accels = home / ".config/nautilus/scripts-accels"
+    accels.parent.mkdir(parents=True)
+    accels.write_text("<Control>F12 Another script\n")
+    appearance = home / ".config/kumquat/appearance.toml"
+    appearance.parent.mkdir(parents=True)
+    appearance.write_text('[appearance]\nstyle = "glass"\n')
+
+
+def _snapshot(home):
+    return {
+        str(path.relative_to(home)): path.read_text()
+        for path in sorted(home.rglob("*"))
+        if path.is_file() and ".bak." not in path.name
+    }
+
+
+def test_uninstall_restores_the_files_the_installer_changed(tmp_path):
+    home = tmp_path / "home"
+    _seed_home(home)
+    before = _snapshot(home)
+    api = installer()
+    api["install"](REPO, home)
+    assert _snapshot(home) != before
+    api["uninstall"](home)
+    assert _snapshot(home) == before
+
+
+def test_uninstall_keeps_backups_and_user_data(tmp_path):
+    home = tmp_path / "home"
+    _seed_home(home)
+    api = installer()
+    api["install"](REPO, home)
+    backups = {p.name for p in home.rglob("*.bak.*")}
+    assert backups, "install must have backed up the files it changed"
+    api["uninstall"](home)
+    assert backups <= {p.name for p in home.rglob("*.bak.*")}
+    assert (home / ".config/kumquat/appearance.toml").read_text() == (
+        '[appearance]\nstyle = "glass"\n'
+    )
+
+
+def test_uninstall_leaves_things_it_did_not_write(tmp_path):
+    home = tmp_path / "home"
+    _seed_home(home)
+    mine = home / ".local/bin/kumquat"
+    mine.parent.mkdir(parents=True)
+    mine.write_text("#!/bin/sh\necho my own wrapper\n")
+    hand_rule = RULE_LINE.replace("520, 640", "700, 500")
+    rules = home / ".config/hypr/hyprland.lua"
+    rules.write_text(rules.read_text() + "-- my popup\n" + hand_rule + "\n")
+    api = installer()
+    api["uninstall"](home)
+    assert mine.read_text() == "#!/bin/sh\necho my own wrapper\n"
+    assert hand_rule in rules.read_text()
+
+
+def test_uninstall_is_idempotent_and_safe_on_an_empty_home(tmp_path, capsys):
+    home = tmp_path / "home"
+    home.mkdir()
+    api = installer()
+    api["uninstall"](home)
+    api["uninstall"](home)
+    assert _snapshot(home) == {}
+    assert f"omarchy plugin remove {PLUGIN_ID}" in capsys.readouterr().out
+
+
+def test_uninstall_after_install_twice_matches_a_single_uninstall(tmp_path):
+    home = tmp_path / "home"
+    _seed_home(home)
+    before = _snapshot(home)
+    api = installer()
+    api["install"](REPO, home)
+    api["install"](REPO, home)
+    api["uninstall"](home)
+    api["uninstall"](home)
+    assert _snapshot(home) == before
+
+
+def test_command_line_uninstall_flag(tmp_path):
+    home = tmp_path / "home"
+    _seed_home(home)
+    before = _snapshot(home)
+    env = {**os.environ, "HOME": str(home)}
+    subprocess.run(
+        [sys.executable, str(SCRIPT)], env=env, check=True, capture_output=True
+    )
+    assert _snapshot(home) != before
+    done = subprocess.run(
+        [sys.executable, str(SCRIPT), "--uninstall"],
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert done.returncode == 0, done.stderr
+    assert _snapshot(home) == before
+
+
+def test_a_user_of_the_standalone_checkout_is_moved_onto_the_plugin(tmp_path):
+    """Installing the plugin's shortcuts over the old standalone ones replaces them."""
+    home = tmp_path / "home"
+    launcher = home / ".local/bin/kumquat"
+    launcher.parent.mkdir(parents=True)
+    old_launcher = (
+        "#!/bin/sh\n"
+        "# User install: system Python for GTK, source from this checkout.\n"
+        "exec /usr/bin/python3 -c 'old standalone code' \"$@\"\n"
+    )
+    launcher.write_text(old_launcher)
+    bindings = home / ".config/hypr/bindings.lua"
+    bindings.parent.mkdir(parents=True)
+    bindings.write_text(
+        'o.bind("SUPER + H", "My terminal", "foot")\n'
+        "-- BEGIN Kumquat shortcuts (managed)\n"
+        'hl.unbind("SUPER + E")\n'
+        'o.bind("SUPER + E", "Kumquat browser", "/old/path/kumquat --gui")\n'
+        "-- END Kumquat shortcuts (managed)\n"
+    )
+    installer()["install"](REPO, home)
+    assert "old standalone code" not in launcher.read_text()
+    assert str(REPO / "bin/kumquat") in launcher.read_text()
+    assert any(
+        p.read_text() == old_launcher for p in launcher.parent.glob("kumquat.bak.*")
+    )
+    content = bindings.read_text()
+    assert content.count('o.bind("SUPER + E"') == 1
+    assert "/old/path" not in content
+    assert 'o.bind("SUPER + H", "My terminal", "foot")' in content
