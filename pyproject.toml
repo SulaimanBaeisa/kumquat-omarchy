@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kumquat"
+version = "0.1.0"
+description = "Zero-click offline file converter for Omarchy/Arch"
+requires-python = ">=3.11"
+
+[project.scripts]
+kumquat = "kumquat.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 90
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RET", "ARG"]
+# ARG002: unused method args -- stand-in/stub classes mirror real signatures.
+ignore = ["ARG002"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: monkeypatch stubs (`lambda *a, **k: ...`, fake run/which functions)
+# must accept the full signature of what they replace (ARG005/ARG001), and
+# pytest fixtures such as `tmp_path` are sometimes requested only for their
+# isolation side effect (ARG001).
+"tests/**" = ["ARG001", "ARG005"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["kumquat"]

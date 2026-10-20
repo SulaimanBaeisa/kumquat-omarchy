@@ -1,0 +1,26 @@
+name: Suggestion
+description: Propose an idea or an improvement
+labels: ["suggestion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! Suggestions are welcome. The maintainer decides what is merged.
+        **Do not attach private files, screenshots of your desktop, or paths that contain your username.**
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to see?
+      description: Describe the problem first, then the idea.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: A concrete example
+      description: Which file type or workflow would this help?
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Conversions, Tools, Actions, Popup / UI, Omarchy themes, Files integration, Installer, Docs, Other]

@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.hypothesis/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*~
+*.swp
+.vscode/
+.idea/
+
+# Build / dist
+dist/
+build/
+
+# makepkg build output
+packaging/pkg/
+packaging/*.pkg.tar.zst

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=KonqPopupMenu/Plugin
+MimeType=all/allfiles;inode/directory;
+Actions=openWheel;
+
+[Desktop Action openWheel]
+Name=Open in Kumquat
+Comment=Shift=conversions, Super=tools, Ctrl=file actions
+Icon=kumquat
+Exec=kumquat --files %F --gui

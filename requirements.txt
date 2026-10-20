@@ -1,0 +1,9 @@
+# Pinned to latest versions verified to install on Python 3.14 (2026-10-19).
+pytest==9.1.1
+Pillow==13.0.0
+PyMuPDF==1.26.6  # last 1.x; 2.x renamed the import (fitz -> pymupdf)
+pillow-heif==1.8.1
+python-magic==0.4.27
+cairosvg==2.9.1  # SVG input renderer (needs system libcairo, present)
+openpyxl==3.1.5  # xlsx read/write for csv/tsv<->xlsx (pure python, no LO needed)
+python-pptx==1.0.2  # QA fixture builder (slide decks)

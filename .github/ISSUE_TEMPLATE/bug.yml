@@ -1,0 +1,32 @@
+name: Bug report
+description: Something does not work as the README says
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Do not attach private documents.** A tiny synthetic file that shows the problem is better.
+        Remove your username from any path or log you paste.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the file type and the exact message shown.
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System
+      description: Omarchy / Arch version, GTK version, file manager
+  - type: textarea
+    id: output
+    attributes:
+      label: Output of `hyprctl configerrors` (only if a shortcut is involved)
+      render: shell
