@@ -18,6 +18,11 @@ if [ ! -x "$python" ]; then
     }
 fi
 
+# Keep compiled bytecode out of the plugin folder. The shell reloads a plugin when a
+# file under it changes, and `omarchy plugin update` expects a clean git checkout.
+PYTHONPYCACHEPREFIX=${PYTHONPYCACHEPREFIX:-${XDG_CACHE_HOME:-${HOME:-/tmp}/.cache}/kumquat/pycache}
+export PYTHONPYCACHEPREFIX
+
 # The source directory travels as an argument, never inside the program text, so
 # no path can be misread as code.
 exec "$python" -c '
