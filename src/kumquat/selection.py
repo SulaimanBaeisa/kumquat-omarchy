@@ -36,7 +36,7 @@ Rows = list[Row]
 Sections = dict[str, Rows]
 Listing = list[tuple[str, Sections]]
 
-# --- 26 tool ids + verbatim wheel titles -------------------------------
+# --- 26 tool ids + wheel titles ----------------------------------------
 
 TOOL_TITLES = {
     "compress": "COMPRESS",
@@ -79,7 +79,7 @@ TOOLS = [
 ]
 assert len(TOOLS) == 26 and set(TOOLS) == set(TOOL_TITLES)
 
-# --- 6 file actions + verbatim wheel titles --------------------------------
+# --- 6 file actions + wheel titles ----------------------------------------
 
 ACTION_TITLES = {
     "share": "LOCALSEND",
@@ -91,7 +91,7 @@ ACTION_TITLES = {
 }
 assert list(ACTION_TITLES) == ACTIONS
 
-# --- et() single-select table ----------------------------------------------
+# --- single-select tool table ----------------------------------------------
 
 _IMAGE_TOOL_SINGLE = ["compress", "removeMetadata", "editImage",
                       "annotateImage", "frameImage", "cropImage",
@@ -110,16 +110,16 @@ _AUDIO_TOOLFUL = {"mp3", "m4a", "wav", "flac"}  # ogg/opus/aiff/wma: conversions
 _VIDEO = {"mp4", "mov", "mkv", "webm", "avi", "wmv", "gif"}
 _ARCHIVES = {"zip", "tar", "gz", "tgz", "rar"}
 
-# Je (11 ids; $e filters everything else for t>1).
-JE_ALLOW = {"compress", "removeMetadata", "cropImage", "normalizeAudio",
+# Multi-select allowlist (11 ids; everything else is dropped for >1 file).
+MULTI_ALLOW = {"compress", "removeMetadata", "cropImage", "normalizeAudio",
             "muteVideo", "splitPDF", "extractArchive", "createPDF",
             "mergePDF", "joinVideos", "createCollage"}
 
-# lists et(e, t>1), per family. Each equals
-# Je-filtered single plus documented additions — EXCEPT video, which also
-# keeps trimVideo/cropVideo/changeVideoSpeed (absent from Je) per the
-# verbatim multi-video list ("same minus videoSnapshots splitVideo
-# redactVideo"), and pdf, where mergePDF swaps in for organizePDF.
+# Multi-select tool lists, per family. Each equals the allowlist-filtered
+# single list plus additions — EXCEPT video, which also keeps
+# trimVideo/cropVideo/changeVideoSpeed (absent from the allowlist): the
+# single list minus videoSnapshots, splitVideo and redactVideo. In pdf,
+# mergePDF swaps in for organizePDF.
 # svg multi: createPDF/createCollage only. joinVideos is multi-only
 # (needs >1 input; no single list contains it).
 _MULTI = {
@@ -134,7 +134,7 @@ _MULTI = {
 
 
 def _format_key(filename: str) -> str:
-    """Extension key for the et() table: 'photo.JPG'->'jpg', 'a.tar.gz'->'gz'."""
+    """Extension key for the tool tables: 'photo.JPG'->'jpg', 'a.tar.gz'->'gz'."""
     name = filename.lower()
     if name.endswith(".tar.gz"):
         return "gz"
@@ -145,7 +145,7 @@ def _format_key(filename: str) -> str:
 
 
 def _single_tools(key: str) -> tuple[str, list[str]]:
-    """(family, single-select tool ids) per et(e, 1)."""
+    """(family, single-select tool ids) for a single file."""
     if key in _IMAGES:
         if key == "svg":
             return "images", []  # svg: multi only
@@ -164,7 +164,7 @@ def _single_tools(key: str) -> tuple[str, list[str]]:
 
 
 def tools_for(filename: str, multi: bool = False) -> list[str]:
-    """Tool ids for one file; multi=True uses the explicit et(e, t>1) list."""
+    """Tool ids for one file; multi=True uses the explicit multi-select list."""
     family, single = _single_tools(_format_key(filename))
     if not multi:
         return single
@@ -179,7 +179,7 @@ def files_listing(files: list[str], mimes: list[str] | None = None) -> Listing:
     """Per-file wheel sections: [(filename, {conversions/tools/actions})].
 
     conversions: [(conversion id, label)] from options_for.
-    tools: [(tool id, wheel title)] from et()/Je.
+    tools: [(tool id, wheel title)] from the tool tables and allowlist.
     actions: [(action id, wheel title)] always all six.
     """
     multi = len(files) > 1

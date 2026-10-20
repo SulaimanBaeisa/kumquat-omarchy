@@ -3,7 +3,7 @@
 Backend policy (mirrors converters_pdf / converters_docs):
 - zip create/extract: stdlib zipfile (always present).
 - tar / tar.gz create/extract: stdlib tarfile (always present).
-- gz output is named `<stem>.tar.gz` per the Ge() rule (gz output
+- gz output is named `<stem>.tar.gz` per the gz naming rule (gz output
   named `tar.gz`): inputs are tarred, then gzipped.
 - Single-stream `.gz` inputs (not `.tar.gz`) gunzip natively, no backend.
 - rar is extract-only: 7z, then bsdtar, then the rarfile module; none

@@ -1,10 +1,10 @@
 """Archive conversion rows — data only, no logic.
 
-Encodes the observed conversion matrix:
-  zip/tar/gz/rar->[zip,tar,gz] with self filtered; rar is input-only
-  (He), so it never appears as an output.
+Conversion matrix:
+  zip/tar/gz/rar->[zip,tar,gz] with self filtered; rar is input-only, so it
+  never appears as an output.
   zip/tar/gz: 2 rows each; rar: 3 rows. Total: 9 rows.
-Label rule E: gz->"GZIP" else UPPER. Ge() naming rule: gz output is
+Label rule: gz->"GZIP" else UPPER. gz naming rule: gz output is
 named `tar.gz` (output_ext ".tar.gz"); see converters_archives.
 """
 from .registry import Conversion, register

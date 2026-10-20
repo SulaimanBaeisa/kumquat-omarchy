@@ -1,17 +1,17 @@
 """Audio/video conversion rows — data only, no logic.
 
-Encodes the observed conversion matrix:
-  q (audio in=out) = ["mp3","m4a","wav","flac","ogg","opus","aiff","wma"],
-  q->q with self filtered: 8x7 = 56 rows.
-  T (video) = ["mp4","mov","mkv","webm","avi","wmv"],
-  T->[...T,"gif","mp3"] with self filtered: 6x7 = 42 rows;
-  gif->T: 6 rows. Video category total: 48 rows.
-Label rule E: gz->"GZIP" else UPPER (no gz here, kept for fidelity).
+Conversion matrix:
+  audio (in = out) = ["mp3","m4a","wav","flac","ogg","opus","aiff","wma"],
+  audio->audio with self filtered: 8x7 = 56 rows.
+  video = ["mp4","mov","mkv","webm","avi","wmv"],
+  video->[...video,"gif","mp3"] with self filtered: 6x7 = 42 rows;
+  gif->video: 6 rows. Video category total: 48 rows.
+Label rule: gz->"GZIP" else UPPER (no gz here; kept for consistency).
 """
 from .registry import Conversion, register
 
-_Q = ["mp3", "m4a", "wav", "flac", "ogg", "opus", "aiff", "wma"]
-_T = ["mp4", "mov", "mkv", "webm", "avi", "wmv"]
+_AUDIO_FORMATS = ["mp3", "m4a", "wav", "flac", "ogg", "opus", "aiff", "wma"]
+_VIDEO_FORMATS = ["mp4", "mov", "mkv", "webm", "avi", "wmv"]
 
 _AUDIO_EXTS = {
     "mp3": (".mp3",),
@@ -39,8 +39,8 @@ def _label(ext: str) -> str:
     return "Convert to " + ("GZIP" if ext == "gz" else ext.upper())
 
 
-for _src in _Q:
-    for _dst in _Q:
+for _src in _AUDIO_FORMATS:
+    for _dst in _AUDIO_FORMATS:
         if _dst == _src:
             continue
         register(Conversion(
@@ -51,9 +51,9 @@ for _src in _Q:
             category="audio",
         ))
 
-_VIDEO_OUTS = _T + ["gif", "mp3"]
+_VIDEO_OUTS = _VIDEO_FORMATS + ["gif", "mp3"]
 
-for _src in _T:
+for _src in _VIDEO_FORMATS:
     for _dst in _VIDEO_OUTS:
         if _dst == _src:
             continue
@@ -65,7 +65,7 @@ for _src in _T:
             category="video",
         ))
 
-for _dst in _T:
+for _dst in _VIDEO_FORMATS:
     register(Conversion(
         id=f"video-gif-to-{_dst}",
         label=_label(_dst),

@@ -4,12 +4,12 @@ TDD record: this file was written FIRST against a nonexistent
 `kumquat.cli` (RED: ModuleNotFoundError on collection),
 then `src/kumquat/cli.py` was implemented to make it GREEN.
 
-What is asserted here (verbatim strings):
+What is asserted here (exact strings):
 - per-file sections list conversion labels from `options_for`
-  (label rule E: "Convert to PNG"; gz -> "Convert to GZIP");
-- tool section lists wheel titles (verbatim `L` titles from the REA
-  bundle: COMPRESS, TRIM, MERGE PDF, ...); tool applicability follows
-  the `et()` table and the `Je` allowlist;
+  (label rule: "Convert to PNG"; gz -> "Convert to GZIP");
+- tool section lists wheel titles (COMPRESS, TRIM, MERGE PDF, ...);
+  tool applicability follows the single-select table and the multi-select
+  allowlist;
 - action section lists wheel titles;
 - empty states: "No conversions for this format. Tap Control for file
   actions."; center prompts: "Choose a conversion format / file tool /
@@ -56,11 +56,11 @@ def test_listing_photo_conversions_use_registry_labels():
     conv = dict(listing)["photo.jpg"]["conversions"]
     assert ("image-jpg-to-png", "Convert to PNG") in conv
     assert ("image-jpg-to-pdf", "Convert to PDF") in conv
-    assert len(conv) == 7  # qe minus self
+    assert len(conv) == 7  # image outputs minus self
 
 
 def test_listing_gzip_label_rule():
-    # Label rule E: gz->"GZIP" else UPPER; Ge() names gz output tar.gz.
+    # Label rule: gz->"GZIP" else UPPER; gz output is named tar.gz.
     listing = files_listing(["backup.zip"], ["application/zip"])
     entry = dict(listing)["backup.zip"]
     labels = _labels(entry["conversions"])
@@ -72,7 +72,7 @@ def test_listing_gzip_label_rule():
     assert "Convert to GZIP" not in labels  # self filtered
 
 
-def test_listing_empty_state_verbatim():
+def test_listing_empty_state_exact():
     listing = files_listing(["README"], ["text/plain"])
     conv = dict(listing)["README"]["conversions"]
     assert conv == []
@@ -80,17 +80,17 @@ def test_listing_empty_state_verbatim():
     assert "No conversions for this format. Tap Control for file actions." in text
 
 
-def test_listing_prompts_verbatim():
+def test_listing_prompts_exact():
     text = files_listing_text(["photo.jpg"], ["image/jpeg"])
     assert "Choose a conversion format" in text
     assert "Choose a file tool" in text
     assert "Choose a file action" in text
 
 
-# --- tools: et() table + Je allowlist ------------------------------------
+# --- tools: tool table + multi-select allowlist ---------------------------
 
 
-def test_tool_titles_verbatim():
+def test_tool_titles_exact():
     assert TOOL_TITLES["compress"] == "COMPRESS"
     assert TOOL_TITLES["trimVideo"] == "TRIM"
     assert TOOL_TITLES["mergePDF"] == "MERGE PDF"
@@ -118,7 +118,7 @@ def test_multi_jpg_tools_allowlist():
     assert "cropImage" in ids
     assert "createPDF" in ids
     assert "createCollage" in ids
-    assert "editImage" not in ids  # filtered by $e for t>1
+    assert "editImage" not in ids  # not in the multi-select allowlist
 
 
 def test_wma_has_conversions_only_no_tools():
@@ -177,7 +177,7 @@ def test_multi_mp4_tools_drop_snapshot_split_redact():
 # --- actions -------------------------------------------------------------
 
 
-def test_action_titles_verbatim():
+def test_action_titles_exact():
     assert ACTION_TITLES == {
         "share": "LOCALSEND",
         "float": "FLOAT",

@@ -1,8 +1,8 @@
 """PDF conversion rows — data only, no logic.
 
-Encodes the observed conversion matrix:
+Conversion matrix:
   pdf->[docx,pages,pptx,xlsx,jpg,png,epub,txt,md] (9 outputs).
-Label rule E: gz->"GZIP" else UPPER (no gz here, kept for fidelity).
+Label rule: gz->"GZIP" else UPPER (no gz here; kept for consistency).
 """
 from .registry import Conversion, register
 

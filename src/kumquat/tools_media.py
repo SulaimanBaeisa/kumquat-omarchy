@@ -3,10 +3,10 @@
 Originals are never modified — every function writes into ``dest_dir``
 and leaves ``src`` bytes untouched.
 
-Output naming follows the ``tt()`` rule:
+Output suffixes:
 ``Muted / Trimmed / Bleeped / Speed 2x / Snapshot->png / Clips->folder /
-Visualizer->mp4 / Mono / Normalized``; ``joinVideos`` has no ``tt()``
-entry in the observed source, so join falls back to
+Visualizer->mp4 / Mono / Normalized``; ``joinVideos`` has no fixed
+suffix, so join falls back to
 ``<first-stem>-joined.mp4`` (same convention as the pdf ``-merged`` and
 image ``-Collage`` fallbacks).
 
@@ -230,7 +230,7 @@ def change_speed(src: Path, dest_dir: Path, factor: float) -> Path:
 # --- join / snapshot / split ---------------------------------------------------
 
 def join_mp4(srcs: list[Path], dest_dir: Path) -> Path:
-    """Concatenate mp4s in order (no ``tt()`` entry observed).
+    """Concatenate mp4s in order (no fixed suffix).
 
     Output named ``<first-stem>-joined.mp4``.
     """

@@ -1,10 +1,10 @@
 """Slides conversion rows — data only, no logic.
 
-Encodes the observed conversion matrix:
-  ppt/pptx->[pdf,jpg,png] (ppt is input-only per He, so it never appears
+Conversion matrix:
+  ppt/pptx->[pdf,jpg,png] (ppt is input-only, so it never appears
   as an output; self filtered).
   ppt: 3 rows; pptx: 2 rows. Total: 6 rows.
-Label rule E: gz->"GZIP" else UPPER (no gz here, kept for fidelity).
+Label rule: gz->"GZIP" else UPPER (no gz here; kept for consistency).
 """
 from .registry import Conversion, register
 
