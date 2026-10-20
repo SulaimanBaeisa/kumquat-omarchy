@@ -337,7 +337,7 @@ omarchy plugin remove io.github.sulaimanbaeisa.kumquat
 `~/.local/bin/kumquat`, and the Files script and extension. It leaves alone anything you wrote
 yourself (a hand-written rule or your own `kumquat` command), backs up each file before editing it,
 and never deletes your `~/.config/kumquat/appearance.toml`, the `*.bak.*` backups, or any file you
-converted or any original.
+converted or any original. The bytecode cache in `~/.cache/kumquat/` is yours to delete.
 
 **If the plugin folder is already gone**, remove by hand: delete `~/.local/bin/kumquat`; delete the
 `-- BEGIN Kumquat shortcuts (managed)` … `-- END …` block from `~/.config/hypr/bindings.lua` and the
@@ -375,6 +375,7 @@ different interpreter.
 | Popup rule | `~/.config/hypr/hyprland.lua` | Optional installer; `dev.kumquat.app` window class |
 | Files integration | `~/.local/share/nautilus-python/extensions/` and `~/.local/share/nautilus/scripts/` | Optional installer; restart Files after changes |
 | `kumquat` command | `~/.local/bin/kumquat` | Optional installer |
+| Python bytecode cache | `~/.cache/kumquat/pycache` (or under `$XDG_CACHE_HOME`) | Written by `bin/kumquat` so nothing lands in the plugin folder; safe to delete |
 
 ## Troubleshooting
 
