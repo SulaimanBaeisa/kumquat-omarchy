@@ -16,13 +16,15 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("PySide6.QtQml")
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6 import QtCore  # noqa: E402
-from PySide6.QtCore import QCoreApplication, QUrl  # noqa: E402
-from PySide6.QtGui import QGuiApplication  # noqa: E402
-from PySide6.QtQml import QQmlComponent, QQmlEngine  # noqa: E402
+try:
+    from PySide6 import QtCore
+    from PySide6.QtCore import QCoreApplication, QUrl
+    from PySide6.QtGui import QGuiApplication
+    from PySide6.QtQml import QQmlComponent, QQmlEngine
+except ImportError as exc:  # PySide6 missing, or Qt's system libraries (libEGL...) are
+    pytest.skip(f"Qt for Python is not usable here: {exc}", allow_module_level=True)
 
 ROOT = Path(__file__).resolve().parents[1]
 STUBS = ROOT / "tests/qml_stubs"

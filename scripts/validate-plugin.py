@@ -70,7 +70,7 @@ SECURITY_PATTERNS = (
         re.compile(_SH + r"\s+<\(\s*" + _FETCH),
     ),
     (
-        "git-sourced cargo install without a full commit pin",
+        "git-hosted crate install without a full commit pin",
         re.compile(r"cargo\s+install\b(?![^\n]*--rev\s+[0-9a-f]{40}\b)[^\n]*--git\b"),
     ),
     ("passwordless sudoers rule", re.compile(r"\bNO" + r"PASSWD\b")),

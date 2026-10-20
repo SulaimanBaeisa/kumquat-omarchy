@@ -13,7 +13,7 @@ here=$(CDPATH='' cd -- "$(dirname -- "$self")/.." && pwd -P)
 python=${KUMQUAT_PYTHON:-/usr/bin/python3}
 if [ ! -x "$python" ]; then
     python=$(command -v python3 2>/dev/null) || {
-        echo "kumquat: python3 was not found; install it with: sudo pacman -S python" >&2
+        echo "kumquat: python3 was not found; install the python package" >&2
         exit 127
     }
 fi

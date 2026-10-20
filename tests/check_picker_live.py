@@ -74,7 +74,8 @@ def window_title(win: dict) -> str:
 
 
 def is_wheel(win: dict) -> bool:
-    """True for the wheel surface. Matches Zen's 'kumquat-omarchy' never."""
+    """True for the Kumquat window; the title must match exactly, so a browser tab
+    that merely shows this project's name never counts."""
     return window_title(win).lower() == WHEEL_TITLE
 
 

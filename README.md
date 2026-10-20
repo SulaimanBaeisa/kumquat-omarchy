@@ -70,9 +70,8 @@ You need Omarchy with the Quattro shell, which provides the `omarchy plugin` com
 # 1. Add the plugin (asks you to confirm; it never runs plugin code or asks for sudo)
 omarchy plugin add https://github.com/SulaimanBaeisa/omarchy-plugin-kumquat.git --enable
 
-# 2. Install the dependencies (see "Dependencies" below for what each one is for)
-sudo pacman -S --needed python gtk4 python-gobject python-pillow python-pymupdf \
-  ffmpeg imagemagick libheif libavif poppler qpdf
+# 2. Install the dependencies (see "Dependencies" below for the optional ones)
+sudo pacman -S --needed python gtk4 python-gobject python-pillow python-pymupdf ffmpeg
 
 # 3. Optional: put a Kumquat button in the bar
 omarchy bar move io.github.sulaimanbaeisa.kumquat --section right
@@ -93,26 +92,35 @@ Kumquat is a normal desktop program that the plugin starts. It needs the **syste
 (`/usr/bin/python3`), because that is the one with GTK's Python bindings; a virtualenv alone does
 not provide the GUI.
 
-**Required for the core app** (Python 3.11+, GTK 4.12+):
+**Required** (Python 3.11+, GTK 4.12+): the app does not start without these.
 
 ```bash
-sudo pacman -S --needed python gtk4 python-gobject python-pillow python-pymupdf \
-  ffmpeg imagemagick libheif libavif poppler qpdf
+sudo pacman -S --needed python gtk4 python-gobject python-pillow python-pymupdf ffmpeg
 ```
 
-**Optional, per feature.** A missing optional backend only disables the routes that need it:
+**Optional, per feature.** A missing optional backend only disables the routes that need it, and
+Kumquat says which one is missing instead of failing silently:
 
 | Package | Needed for |
 |---|---|
-| `libreoffice-still` | Word / Excel / PowerPoint / OpenDocument conversions |
-| `pandoc` | Markdown, EPUB, text-document conversions |
-| `7zip` | Extracting RAR / 7z and other archives |
-| `exiftool` | Removing metadata from most image/media formats |
+| `libreoffice-still` | Word / Excel / PowerPoint / OpenDocument / RTF conversions (runs `soffice` headless) |
+| `pandoc` | Markdown, EPUB and text-document conversions |
+| `7zip` (or `libarchive`) | Extracting RAR archives (zip, tar and gz need nothing extra) |
 | `wl-clipboard` | Clipboard actions (*Copy*, *Share*) |
 | `nautilus-python` | The `Shift+E` shortcut and the context-menu entry in Files |
 | `localsend` | The *Share* action |
 
-Some image formats also need the Python plugins `pillow-heif` / `cairosvg`.
+Optional **Python modules**, imported by the system Python. Install the matching `python-<name>`
+packages from your repositories (search with `pacman -Ss <name>`):
+
+| Module | Needed for |
+|---|---|
+| `openpyxl` | CSV / TSV ↔ XLSX |
+| `cairosvg` | SVG as an input image |
+| `pillow-heif` | HEIC / HEIF / AVIF in or out |
+| `magic` (python-magic) | Sharper file-type detection in `--list`; the file extension is used without it |
+
+`python3 scripts/doctor.py` checks all of the above on your machine and says what is missing.
 
 Not required: Node.js, Qt, Quickshell packages (the shell already has them), or any network access.
 
@@ -373,7 +381,7 @@ different interpreter.
 | Symptom | Fix |
 |---|---|
 | No Kumquat button in the bar | `omarchy plugin list` must show the plugin enabled; run `omarchy bar move io.github.sulaimanbaeisa.kumquat --section right`; `omarchy-shell shell rescanPlugins` forces a rescan |
-| Button or summon does nothing | Run `/usr/bin/python3 -c "import gi; gi.require_version('Gtk','4.0')"` (it must succeed), then `~/.config/omarchy/plugins/io.github.sulaimanbaeisa.kumquat/bin/kumquat --gui` in a terminal to see the error. Shell-side messages: `qs log -p "$OMARCHY_PATH/shell" --tail 100` |
+| Button or summon does nothing | Run `python3 ~/.config/omarchy/plugins/io.github.sulaimanbaeisa.kumquat/scripts/doctor.py`; it checks GTK, the required tools and that the launcher starts. Then try `~/.config/omarchy/plugins/io.github.sulaimanbaeisa.kumquat/bin/kumquat --gui` in a terminal to see the error. Shell-side messages: `qs log -p "$OMARCHY_PATH/shell" --tail 100` |
 | Pasting the `o.window(...)` line into a terminal gives errors | It is a config line, not a command. The installer adds it for you; see [Optional shortcuts](#optional-shortcuts-and-files-integration) |
 | `Super+E` does nothing | Run the optional installer; `hyprctl configerrors` must be empty; `hyprctl binds \| grep -i kumquat` |
 | `Shift+E` does nothing in Files | Restart Files once. It works only when a **file** is selected, not a text field |
@@ -444,6 +452,7 @@ PYTHONPATH=src /usr/bin/python3 tests/make_theme_gallery.py docs/images/themes.p
 | `extensions/` | Files (Nautilus) and Dolphin integration |
 | `scripts/install-shortcuts.py` | Optional installer and `--uninstall`, with migration |
 | `scripts/validate-plugin.py` | The plugin contract check |
+| `scripts/doctor.py` | Checks that this machine can run Kumquat |
 | `tests/` | Unit tests, QML and JS tests, real-GTK scripts, QA sweeps |
 | `docs/` | Portability notes, QA summaries |
 
@@ -502,8 +511,8 @@ come as pull requests. The maintainer reviews and merges everything; see
 
 [MIT](LICENSE) © Sulaiman Baeisa.
 
-Kumquat stands on excellent open-source tools: FFmpeg, ImageMagick, Pillow, PyMuPDF, poppler,
-qpdf, LibreOffice, pandoc, 7-Zip, ExifTool, GTK and LocalSend. Note that
+Kumquat stands on excellent open-source tools: FFmpeg, Pillow, PyMuPDF, GTK, LibreOffice, pandoc,
+7-Zip, pillow-heif, CairoSVG, openpyxl and LocalSend. Note that
 [PyMuPDF is AGPL-3.0 / commercial](https://pymupdf.readthedocs.io/en/latest/about.html#license-and-copyright)
 licensed; Kumquat only uses it as an installed dependency, so check that licence if you
 redistribute a bundle that includes it.
