@@ -295,12 +295,18 @@ Press `Super+E`: the popup should now appear small, floating and centred.
 
 **Adding it by hand** (only if you skipped the installer or want to do it yourself). Pick one:
 
-1. *With an editor:* open the file, scroll to the very end, paste the line below on a new line,
-   save, then run `hyprctl reload`.
+1. *With an editor.* Omarchy's default editor is **nvim**:
 
    ```bash
-   nvim ~/.config/hypr/hyprland.lua      # or any editor you prefer
+   nvim ~/.config/hypr/hyprland.lua
    ```
+
+   (`omarchy-launch-editor ~/.config/hypr/hyprland.lua` opens it in whichever editor Omarchy is set
+   to use, and `nano ~/.config/hypr/hyprland.lua` works if you have nano installed.)
+
+   In **nvim**: press `G` to jump to the end, press `i` to start typing, paste the line below on a
+   new line, press `Esc`, then type `:wq` and `Enter` to save and quit (`:q!` quits without saving).
+   Finally run `hyprctl reload`.
 
    ```lua
    o.window("^(dev\\.kumquat\\.app)$", { float = true, center = true, size = { 520, 640 } })
