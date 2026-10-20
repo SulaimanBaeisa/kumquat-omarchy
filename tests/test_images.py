@@ -63,7 +63,7 @@ def test_registry_routes_jpg_to_png():
 
 def test_registry_routes_svg_input():
     opts = options_for("a.svg", "image/svg+xml")
-    assert len(opts) == 8  # svg is input-only: all qe outputs
+    assert len(opts) == 8  # svg is input-only: all image outputs
     assert all(c.id.startswith("image-svg-to-") for c in opts)
 
 

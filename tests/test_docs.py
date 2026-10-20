@@ -1,14 +1,14 @@
 """Docs/sheets/subs conversions: registry routing + real conversions, originals untouched.
 
-rows (verbatim):
-- re=[docx,pages,md,rtf,rtfd,textClipping]->Xe=[docx,pages,pdf,txt,md,html,epub,png,jpg]
-  (rtf/rtfd/textClipping input-only: filtered from outputs per He; self filtered)
+rows:
+- docs=[docx,pages,md,rtf,rtfd,textClipping]->[docx,pages,pdf,txt,md,html,epub,png,jpg]
+  (rtf/rtfd/textClipping input-only: filtered from outputs; self filtered)
   => 8+8+8+9+9+9 = 51 rows, category "documents".
 - epub->[pdf,docx,pages,txt,md,html] = 6 rows, category "documents".
 - txt->[docx,pages,pdf,md,html,epub,jpg,png] = 8 rows, category "documents".
-- H=[xlsx,xls,ods,csv,tsv]->[...H,pdf] (xls input-only per He; self filtered)
+- sheets=[xlsx,xls,ods,csv,tsv]->[...sheets,pdf] (xls input-only; self filtered)
   => 4+5+4+4+4 = 21 rows, category "spreadsheets".
-- X=[srt,vtt]->[other,txt] = 4 rows, category "subtitles".
+- subs=[srt,vtt]->[other,txt] = 4 rows, category "subtitles".
 New total: 170 + 51+6+8+21+4 = 260.
 
 Backend policy (mirrors converters_pdf):
@@ -131,7 +131,7 @@ def test_registry_total_with_docs():
 def test_docs_no_self_or_input_only_outputs():
     for c in DOC_ROWS + SHEET_ROWS + SUB_ROWS:
         dst = c.output_ext.lstrip(".")
-        assert dst not in ("rtf", "rtfd", "textclipping", "xls"), c.id  # He filtered
+        assert dst not in ("rtf", "rtfd", "textclipping", "xls"), c.id  # input-only
     for c in DOC_ROWS + SHEET_ROWS + SUB_ROWS:
         src = c.id.split("-to-")[0].split("-", 1)[1]
         dst = c.output_ext.lstrip(".")
@@ -146,7 +146,7 @@ def test_docs_labels_follow_E_rule():
 
 def test_registry_routes_docx():
     opts = options_for("a.docx", "application/octet-stream")
-    assert len(opts) == 8  # Xe minus self
+    assert len(opts) == 8  # doc outputs minus self
     assert any(c.id == "doc-docx-to-pdf" for c in opts)
 
 
@@ -158,7 +158,7 @@ def test_registry_routes_csv():
 
 def test_registry_routes_xls_gets_five():
     opts = options_for("a.xls", "application/octet-stream")
-    assert len(opts) == 5  # xls input-only: self never filtered, He not an output
+    assert len(opts) == 5  # xls input-only: never an output
     assert any(c.id == "sheet-xls-to-xlsx" for c in opts)
 
 

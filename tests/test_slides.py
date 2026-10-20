@@ -1,7 +1,7 @@
 """Slides conversions: registry routing + real conversions, originals untouched.
 
-rows (verbatim):
-- ppt/pptx->[pdf,jpg,png] (ppt input-only per He, so it never appears
+rows:
+- ppt/pptx->[pdf,jpg,png] (ppt input-only, so it never appears
   as an output; self is never in the output list).
   ppt: 3 rows; pptx: 3 rows. Total: 6 rows, category "slides".
 - Registry gate: 260 + 9 archives + 6 slides = 275 EXACTLY.
@@ -152,7 +152,7 @@ def _make_pptx(path):
 
 
 def test_registry_slides_count():
-    assert len(SLIDE_ROWS) == 6  # ppt 3 + pptx 3, verbatim
+    assert len(SLIDE_ROWS) == 6  # ppt 3 + pptx 3
 
 
 def test_registry_total_is_275():

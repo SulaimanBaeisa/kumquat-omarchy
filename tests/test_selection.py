@@ -71,7 +71,7 @@ def test_files_listing_shape_is_unchanged():
     assert sections["actions"][0] == ("share", "LOCALSEND")
 
 
-def test_format_listing_starts_with_the_verbatim_header():
+def test_format_listing_starts_with_the_exact_header():
     from kumquat.selection import files_listing, format_listing
 
     text = format_listing(files_listing(["pic.jpg"], ["image/jpeg"]))

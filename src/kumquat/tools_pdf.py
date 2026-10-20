@@ -4,14 +4,14 @@ Originals are never modified — every function writes into ``dest_dir``
 and leaves ``src`` bytes untouched.
 
 - ``merge_pdfs`` is re-exported from
-  :mod:`kumquat.converters_pdf` — no ``tt()`` entry was observed for
-  mergePDF, so the ``<first-stem>-merged.pdf`` name stays.
+  :mod:`kumquat.converters_pdf` — mergePDF has no fixed
+  suffix, so the ``<first-stem>-merged.pdf`` name stays.
 - ``split_pdf`` reuses the converter's page extraction
-  but places parts in a ``<stem>-Pages/`` folder per ``tt()``
+  but places parts in a ``<stem>-Pages/`` folder
   (``Pages->folder``), named ``<stem>-<n>.pdf``.
 - ``organize_pdf`` takes a JSON spec (dict, JSON
   string, or ``.json`` path) with ``reorder`` / ``drop`` / ``dup`` /
-  ``rotate`` keys and writes ``<stem>-Organized.pdf`` per ``tt()``
+  ``rotate`` keys and writes ``<stem>-Organized.pdf``
   (``Organized``).
 
 PyMuPDF is a pinned dependency (always present) — no ``BackendMissing``

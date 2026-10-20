@@ -3,9 +3,8 @@
 Originals are never modified — every function writes into ``dest_dir``
 (or an explicit ``dest`` file) and leaves ``src`` bytes untouched.
 
-Output naming follows the ``tt()`` rule:
-``Compressed / No Metadata / Background / Cropped``; ``createPDF`` and
-``createCollage`` have no ``tt()`` entry in the observed source, so PDF
+Output suffixes: ``Compressed / No Metadata / Background / Cropped``;
+``createPDF`` and ``createCollage`` have no fixed suffix, so PDF
 takes the first input's stem and collage takes ``<stem>-Collage``.
 
 Backends: Pillow pixel rewrites remove metadata, including TIFF IFD0 tags
@@ -344,7 +343,7 @@ def images_to_pdf(srcs: list[Path], dest: Path) -> Path:
 
 
 def collage_name(first_stem: str, suffix: str = ".jpg") -> str:
-    """Collage filename rule (no ``tt()`` entry observed — first-stem)."""
+    """Collage filename rule (no fixed suffix — first-stem)."""
     return f"{first_stem}-Collage{suffix}"
 
 

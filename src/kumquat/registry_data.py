@@ -1,11 +1,11 @@
 """Image conversion rows — data only, no logic.
 
-Encodes the observed conversion matrix: se→qe with self filtered.
-  se (inputs)  = ["jpg","png","webp","heic","tiff","svg","avif","bmp"]
-  qe (outputs) = ["jpg","png","webp","heic","tiff","avif","bmp","pdf"]
+Image inputs -> image outputs, with self filtered.
+  inputs  = ["jpg","png","webp","heic","tiff","svg","avif","bmp"]
+  outputs = ["jpg","png","webp","heic","tiff","avif","bmp","pdf"]
 svg is input-only (never an output), so it yields 8 rows; the other
-7 inputs yield 7 rows each (qe minus self). Total: 57 rows.
-Label rule E: gz→"GZIP" else UPPER (no gz here, kept for fidelity).
+7 inputs yield 7 rows each (outputs minus self). Total: 57 rows.
+Label rule: gz→"GZIP" else UPPER (no gz here; kept for consistency).
 """
 # Import order IS registration order (REGISTRY is an append-only list) and
 # fixes the order options appear in the wheel -- do not let isort sort it.
@@ -18,8 +18,8 @@ from . import registry_archives as _registry_archives  # noqa: F401 -- archive r
 from . import registry_slides as _registry_slides  # noqa: F401 -- slides rows too
 # isort: on
 
-_QE = ["jpg", "png", "webp", "heic", "tiff", "avif", "bmp", "pdf"]
-_SE = ["jpg", "png", "webp", "heic", "tiff", "svg", "avif", "bmp"]
+_IMAGE_OUTPUTS = ["jpg", "png", "webp", "heic", "tiff", "avif", "bmp", "pdf"]
+_IMAGE_INPUTS = ["jpg", "png", "webp", "heic", "tiff", "svg", "avif", "bmp"]
 
 _EXTS = {
     "jpg": (".jpg", ".jpeg"),
@@ -37,8 +37,8 @@ def _label(ext: str) -> str:
     return "Convert to " + ("GZIP" if ext == "gz" else ext.upper())
 
 
-for _src in _SE:
-    for _dst in _QE:
+for _src in _IMAGE_INPUTS:
+    for _dst in _IMAGE_OUTPUTS:
         if _dst == _src:
             continue
         register(Conversion(

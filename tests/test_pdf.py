@@ -55,7 +55,7 @@ def _make_pdf(path, pages=1):
 
 
 def test_registry_pdf_count():
-    assert len(PDF_ROWS) == 9  # pdf row verbatim
+    assert len(PDF_ROWS) == 9  # pdf row
 
 
 def test_registry_total_with_pdf():

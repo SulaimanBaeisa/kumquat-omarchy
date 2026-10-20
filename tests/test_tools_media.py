@@ -185,7 +185,7 @@ def test_join_mp4_sums_durations(tmp_path):
     _make_mp4(b)
     before = (_sha(a), _sha(b))
     out = join_mp4([a, b], tmp_path / "out")
-    assert out.name == "a-joined.mp4"  # no tt() entry: first-stem fallback
+    assert out.name == "a-joined.mp4"  # no fixed suffix: first-stem fallback
     assert _dur(out) == pytest.approx(4.0, abs=0.3)
     assert (_sha(a), _sha(b)) == before
 

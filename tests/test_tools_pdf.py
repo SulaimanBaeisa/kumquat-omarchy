@@ -6,10 +6,10 @@ then the module was implemented to make it GREEN.
 
 `merge_pdfs` writes a collision-safe `<first-stem>-merged.pdf` in page order.
 `split_pdf` delegates page extraction to the converter but places parts
-in a `<stem>-Pages/` folder per `tt()` (`Pages->folder`).
+in a `<stem>-Pages/` folder (`Pages->folder`).
 `organize_pdf` takes a JSON spec (dict, JSON string, or `.json` path)
 with `reorder` / `drop` / `dup` / `rotate` keys and writes
-`<stem>-Organized.pdf` per `tt()` (`Organized`).
+`<stem>-Organized.pdf` (`Organized`).
 
 Originals are never modified (sha-pinned in every behaviour test).
 PyMuPDF is a pinned dependency, so no backend SKIPs apply here.
@@ -60,7 +60,7 @@ def test_merge_pdfs_page_count_and_name(tmp_path):
     b = _make_pdf(tmp_path / "b.pdf", pages=2)
     before = (_sha(a), _sha(b))
     out = merge_pdfs([a, b], tmp_path / "out")
-    assert out.name == "a-merged.pdf"  # no tt() entry: first-stem fallback
+    assert out.name == "a-merged.pdf"  # no fixed suffix: first-stem fallback
     assert _count(out) == 3
     assert (_sha(a), _sha(b)) == before  # originals untouched
 
@@ -93,7 +93,7 @@ def test_organize_reorder_and_name(tmp_path):
     src = _make_pdf(tmp_path / "in.pdf", pages=3)
     before = _sha(src)
     out = organize_pdf(src, tmp_path / "out", spec={"reorder": [2, 1, 0]})
-    assert out.name == "in-Organized.pdf"  # tt(): Organized
+    assert out.name == "in-Organized.pdf"  # suffix: Organized
     got = _texts(out)
     assert "hello page 2" in got[0]
     assert "hello page 0" in got[2]

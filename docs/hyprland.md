@@ -1,7 +1,7 @@
 # Hyprland integration — floating shelf + terminal binds
 
-Ports ledger Q5 `float` ("Keep files in a floating shelf. Pin it to a
-screen edge") and `openTerminal` to Hyprland. The shelf itself is
+Brings the `float` action (keep files in a floating shelf pinned to a
+screen edge) and `openTerminal` to Hyprland. The shelf itself is
 `~/.cache/kumquat-shelf.json` (written by
 `kumquat.actions.float_shelf`, `{"files": [...]}`); Hyprland only
 floats/pins its window.

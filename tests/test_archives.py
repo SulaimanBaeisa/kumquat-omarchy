@@ -1,14 +1,14 @@
 """Archives conversions: registry routing + real conversions, originals untouched.
 
-rows (verbatim):
-- [zip,tar,gz,rar]->[zip,tar,gz] (rar input-only per He; self filtered)
+rows:
+- [zip,tar,gz,rar]->[zip,tar,gz] (rar input-only; self filtered)
   => zip/tar/gz: 2 rows each; rar: 3 rows. Total: 9 rows, category "archives".
 - Registry gate: 260 + 9 archives + 6 slides = 275 EXACTLY.
 
 Backend policy (mirrors converters_pdf / converters_docs):
 - zip create/extract: stdlib zipfile (always present).
 - tar/tar.gz create/extract: stdlib tarfile (always present).
-- gz (single-stream) output: named `<stem>.tar.gz` per the Ge() rule
+- gz (single-stream) output: named `<stem>.tar.gz` per the gz naming rule
   (tar the inputs, then gzip); single-file .gz inputs gunzip natively.
 - rar extract-only: 7z, then bsdtar, then rarfile module; none usable
   (7z/rarfile absent here) -> BackendMissing ALWAYS in this env.
@@ -75,7 +75,7 @@ def _read_members(archive):
 
 
 def test_registry_archives_count():
-    assert len(ARCHIVE_ROWS) == 9  # 2+2+2+3 verbatim
+    assert len(ARCHIVE_ROWS) == 9  # 2+2+2+3
 
 
 def test_registry_total_is_275():
@@ -105,7 +105,7 @@ def test_archives_labels_follow_E_rule():
 def test_archives_gz_output_ext_is_tar_gz():
     for c in ARCHIVE_ROWS:
         if c.id.endswith("-to-gz"):
-            assert c.output_ext == ".tar.gz", c.id  # Ge() naming rule
+            assert c.output_ext == ".tar.gz", c.id  # gz naming rule
 
 
 def test_registry_routes_zip():
@@ -160,7 +160,7 @@ def test_create_tar(tmp_path):
 def test_create_gz_yields_tar_gz(tmp_path):
     srcs = _make_files(tmp_path / "in")
     out = create_archive(srcs, ".gz", tmp_path / "out")
-    assert out.exists() and out.name.endswith(".tar.gz")  # Ge() naming rule
+    assert out.exists() and out.name.endswith(".tar.gz")  # gz naming rule
     assert _read_members(out)["a.txt"] == b"hello archives\n"
 
 
